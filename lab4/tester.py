@@ -1,4 +1,4 @@
-# Fall 2015 6.034 Lab 3: Games
+# Fall 2015 6.034 Lab 4: Constraint Satisfaction Problems
 
 import xmlrpclib
 import traceback
@@ -6,12 +6,8 @@ import sys
 import os
 import tarfile
 
-from game_api import (AbstractGameState, ConnectFourBoard, is_class_instance,
-                      always_zero)
-from toytree import (ToyTree, toytree_is_game_over, toytree_generate_next_states,
-                     toytree_endgame_score_fn, toytree_heuristic_fn)
-from lab3 import (is_game_over_connectfour, next_boards_connectfour,
-                  endgame_score_connectfour)
+from constraint_api import *
+from test_problems import constraint_or
 
 try:
     from cStringIO import StringIO
@@ -85,66 +81,47 @@ def get_lab_module():
 
     return lab
 
+# encode/decode Constraint and ConstraintSatisfactionProblem objects
+def constraint_greater_than(a,b):
+    return a > b
+constraint_dict = {'constraint_equal': constraint_equal,
+                   'constraint_different': constraint_different,
+                   'constraint_or': constraint_or,
+                   'constraint_greater_than': constraint_greater_than}
+def encode_constraint(constraint):
+    fn_name = constraint.constraint_fn.__name__
+    if fn_name == '<lambda>':
+        print (' ** Note: Unfortunately, the online tester is unable to accept '
+               +'lambda functions. To pass the online tests, use named '
+               +'functions instead. **')
+    elif fn_name not in constraint_dict:
+        print ('Error: constraint function', fn_name, 'cannot be transmitted '
+               +'to server.  Please use a pre-defined constraint function instead.')
+    return [constraint.var1, constraint.var2, fn_name]
+def decode_constraint(var1, var2, constraint_fn_name):
+    return Constraint(var1, var2, constraint_dict[constraint_fn_name])
 
-# encode/decode objects
-def encode_AGS(ags):
-    return [ags.snapshot, ags.is_game_over_fn, ags.generate_next_states_fn,
-            ags.endgame_score_fn]
-def decode_AGS(snapshot, is_game_over_fn, generate_next_states_fn,
-               endgame_score_fn):
-    return AbstractGameState(snapshot, is_game_over_fn, generate_next_states_fn,
-                             endgame_score_fn)
-
-def encode_C4B(board):
-    return [board.board_array, board.players, board.whose_turn,
-            board.prev_move_string]
-def decode_C4B(board_array, players, whose_turn, prev_move_string):
-    board = ConnectFourBoard(board_array, players, whose_turn)
-    board.prev_move_string = prev_move_string
-    return board
-
-def encode_ToyTree(tree):
-    if tree.children:
-        return [tree.label, tree.score, map(encode_ToyTree, tree.children)]
-    return [tree.label, tree.score, list()]
-def decode_ToyTree(args):
-    label, score, children_encoded = args
-    tree = ToyTree(label, score)
-    if children_encoded:
-        tree.children = map(decode_ToyTree, children_encoded)
-    return tree
+def encode_CSP(csp):
+    return [csp.variables, map(encode_constraint, csp.constraints),
+            csp.unassigned_vars, csp.domains, csp.assigned_values]
+def decode_CSP(variables, constraint_list, unassigned_vars, domains, assigned_values):
+    csp = ConstraintSatisfactionProblem(variables)
+    csp.constraints = [decode_constraint(*c_args) for c_args in constraint_list]
+    csp.unassigned_vars = unassigned_vars
+    csp.domains = domains
+    csp.assigned_values = assigned_values
+    return csp
 
 # decode functions received from server
-def l_valuate(board, player): return len(sum(board.get_all_chains(player),[]))
-def density(board, player) : return sum([abs(index-3)
-                                         for row in board.board_array
-                                         for (piece, index) in zip(row, range(board.num_cols))
-                                         if piece and (piece == 1) == (board.count_pieces() + player) % 2])
-def lambda_density_heur(board, maximize):
-    return ([-1,1][maximize] * (density(board, False) - density(board, True)
-            + 2*l_valuate(board,True) - 3*l_valuate(board, False)))
-def lambda_minus_heur(board, maximize):
-    return [-1,1][maximize] * (l_valuate(board,True) - l_valuate(board, False))
-
-def lambda_tree_negate(tree, is_max): return [-1,1][is_max] * tree.score
-
-def lambda_child_score(tree, is_max):
-    if not tree.children:
-        return tree.score
-    return tree.children[0].score
-
-function_dict = {'is_game_over_connectfour': is_game_over_connectfour,
-                 'next_boards_connectfour': next_boards_connectfour,
-                 'endgame_score_connectfour': endgame_score_connectfour,
-                 'toytree_is_game_over': toytree_is_game_over,
-                 'toytree_generate_next_states': toytree_generate_next_states,
-                 'toytree_endgame_score_fn': toytree_endgame_score_fn,
-                 'toytree_heuristic_fn': toytree_heuristic_fn,
-                 'lambda_density_heur': lambda_density_heur,
-                 'lambda_minus_heur': lambda_minus_heur,
-                 'lambda_tree_negate': lambda_tree_negate,
-                 'lambda_child_score': lambda_child_score,
-                 'always_zero': always_zero}
+def lambda_F(p, v): return False
+def lambda_T(p, v): return True
+def lambda_1(p, v): return len(p.get_domain(v))==1
+def lambda_12(p, v): return len(p.get_domain(v)) in [1, 2]
+def lambda_B(p, v): return v=='B'
+def lambda_BC(p, v): return v in 'BC'
+function_dict = {'lambda_F': lambda_F, 'lambda_T': lambda_T,
+                 'lambda_1': lambda_1, 'lambda_B': lambda_B,
+                 'lambda_12': lambda_12, 'lambda_BC': lambda_BC}
 
 
 def type_decode(arg, lab):
@@ -158,50 +135,39 @@ def type_decode(arg, lab):
     original data type.
     """
     if isinstance(arg, list) and len(arg) >= 1: # There is no future magic for tuples.
-        if arg[0] == 'AGS' and isinstance(arg[1], list):
-            return decode_AGS(*[type_decode(x, lab) for x in arg[1]])
-        elif arg[0] == 'C4B' and isinstance(arg[1], list):
-            return decode_C4B(*arg[1])
-        elif arg[0] == 'ToyTree' and isinstance(arg[1], list):
-            return decode_ToyTree(arg[1]) # This is intentionally different.
+#        if arg[0] == 'Constraint': # not used because no lone Constraints (ie outside of a CSP) are sent from server
+#            return decode_constraint(*type_decode(arg[1], lab))
+        if arg[0] == 'CSP':
+            return decode_CSP(*type_decode(arg[1], lab))
         elif arg[0] == 'callable':
-            try:
-                return function_dict[arg[1]]
-            except KeyError:
-                error_string = "Error: invalid function name received from server: " + str(arg[1])
-                print error_string + ". Please contact a TA if you continue to see this error."
-                return error_string
+            return function_dict[arg[1]]
         else:
-            return [ type_decode(x, lab) for x in arg ]
+            try:
+                mytype = arg[0]
+                data = arg[1:]
+                return getattr(lab, mytype)([ type_decode(x, lab) for x in data ])
+            except AttributeError:
+                return [ type_decode(x, lab) for x in arg ]
+            except TypeError:
+                return [ type_decode(x, lab) for x in arg ]
     else:
         return arg
 
+def is_list_of_constraints(arg):
+    return (arg != [] and isinstance(arg, (tuple, list))
+            and all(map(isinstance_Constraint, arg)))
 
 def type_encode(arg):
     "Encode classes as lists in a way that can be decoded by 'type_decode'"
-    if isinstance(arg, (list, tuple)):
-        return [type_encode(a) for a in arg]
-    elif is_class_instance(arg, 'AbstractGameState'):
-        return ['AGS', map(type_encode, encode_AGS(arg))]
-    elif is_class_instance(arg, 'ConnectFourBoard'):
-        return ['C4B', encode_C4B(arg)]
-    elif is_class_instance(arg, 'ToyTree'):
-        return ['ToyTree', encode_ToyTree(arg)]
-    elif is_class_instance(arg, 'AnytimeValue'):
-        return ['AnytimeValue_history', type_encode(arg.history)]
-    elif callable(arg):
-        fn_name = arg.__name__
-        if fn_name == '<lambda>':
-            print (' ** Note: Unfortunately, the online tester is unable to '
-                   +'accept lambda functions. To pass the online tests, use '
-                   +'named functions instead. **')
-        elif fn_name not in function_dict:
-            print ('Error: constraint function', fn_name, 'cannot be transmitted '
-                   +'to server.  Please use a pre-defined constraint function instead.')
-        return ['callable', arg.__name__]
+    if isinstance_Constraint(arg):
+        return [ 'Constraint', type_encode(encode_constraint(arg)) ]
+    elif (isinstance(arg, list) and len(arg) == 2 # special case for FUNCTION_WITH_CSP
+          and isinstance_ConstraintSatisfactionProblem(arg[1])):
+        return [type_encode(arg[0]), type_encode(encode_CSP(arg[1]))]
+    elif is_list_of_constraints(arg): # special case for all_different
+        return ['list-of-constraints', map(encode_constraint, arg)]
     else:
         return arg
-
 
 def run_test(test, lab):
     """
@@ -227,17 +193,24 @@ def run_test(test, lab):
         return attr
     elif mytype == 'FUNCTION':
         return apply(attr, args)
+    elif mytype == 'FUNCTION_WITH_CSP':
+        # return modified version of input csp
+        for a in args:
+            if isinstance_ConstraintSatisfactionProblem(a):
+                return [apply(attr, args), a]
+        raise Exception("Test Error: 'FUNCTION_WITH_CSP' test missing CSP. "
+                        + "Please contact a TA if you see this error.")
     elif mytype == 'MULTIFUNCTION':
-        return [ run_test( (id, 'FUNCTION', attr_name, FN), lab)
-                for FN in type_decode(args, lab) ]
+        return [ run_test( (id, 'FUNCTION', attr_name, FN), lab) for FN in args ]
     elif mytype == 'FUNCTION_ENCODED_ARGS':
         return run_test( (id, 'FUNCTION', attr_name, type_decode(args, lab)), lab )
+    elif mytype == 'FUNCTION_ENCODED_ARGS_WITH_CSP':
+        return run_test( (id, 'FUNCTION_WITH_CSP', attr_name, type_decode(args, lab)), lab )
     else:
         raise Exception("Test Error: Unknown TYPE: " + str(mytype)
                         + ".  Please make sure you have downloaded the latest"
                         + "version of the tester script.  If you continue to "
                         + "see this error, contact a TA.")
-
 
 def test_offline(verbosity=1):
     """ Run the unit tests in 'tests.py' """
@@ -271,13 +244,12 @@ def test_offline(verbosity=1):
             show_exception(summary, testname)
             continue
 
-        correct = testanswer(answer)
+        correct = testanswer(answer, original_val = getargs)
         show_result(summary, testname, correct, answer, expected, verbosity)
         if correct: ncorrect += 1
 
     print "Passed %d of %d tests." % (ncorrect, ntests)
     return ncorrect == ntests
-
 
 def get_target_upload_filedir():
     """ Get, via user prompting, the directory containing the current lab """
@@ -306,7 +278,7 @@ def get_tarball_data(target_dir, filename):
 
     print "Preparing the lab directory for transmission..."
 
-    file.add(target_dir)
+    file.add(target_dir+"/lab4.py")
 
     print "Done."
     print
@@ -376,7 +348,6 @@ def test_online(verbosity=1):
     response = server.status(username, password, lab.__name__)
     print response
 
-
 def make_test_counter_decorator():
     tests = []
     def make_test(getargs, testanswer, expected_val, name = None, type = 'FUNCTION'):
@@ -402,7 +373,6 @@ def make_test_counter_decorator():
 
 
 make_test, get_tests = make_test_counter_decorator()
-
 
 if __name__ == '__main__':
     if 'submit' in sys.argv:

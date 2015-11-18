@@ -1,4 +1,4 @@
-# Fall 2015 6.034 Lab 3: Games
+# 6.034 Lab 6 2015: Neural Nets & SVMs
 
 import xmlrpclib
 import traceback
@@ -6,12 +6,9 @@ import sys
 import os
 import tarfile
 
-from game_api import (AbstractGameState, ConnectFourBoard, is_class_instance,
-                      always_zero)
-from toytree import (ToyTree, toytree_is_game_over, toytree_generate_next_states,
-                     toytree_endgame_score_fn, toytree_heuristic_fn)
-from lab3 import (is_game_over_connectfour, next_boards_connectfour,
-                  endgame_score_connectfour)
+from neural_net_api import *
+from svm_api import *
+from lab6 import sigmoid
 
 try:
     from cStringIO import StringIO
@@ -39,8 +36,8 @@ def show_result(testsummary, testcode, correct, got, expected, verbosity):
     else:
         print "%s: Incorrect." % testsummary
         print_testcode(testcode)
-        print "Got:     ", got
-        print "Expected:", expected
+        print "Got:     ", got, "\n"
+        print "Expected:", expected, "\n"
 
 def print_testcode(testcode):
     if isinstance(testcode, (tuple, list)) and len(testcode) >= 3:
@@ -85,66 +82,53 @@ def get_lab_module():
 
     return lab
 
-
 # encode/decode objects
-def encode_AGS(ags):
-    return [ags.snapshot, ags.is_game_over_fn, ags.generate_next_states_fn,
-            ags.endgame_score_fn]
-def decode_AGS(snapshot, is_game_over_fn, generate_next_states_fn,
-               endgame_score_fn):
-    return AbstractGameState(snapshot, is_game_over_fn, generate_next_states_fn,
-                             endgame_score_fn)
+def encode_Wire(wire):
+    return [wire.startNode, wire.endNode, wire.weight]
+def decode_Wire(args):
+    return Wire(*args)
 
-def encode_C4B(board):
-    return [board.board_array, board.players, board.whose_turn,
-            board.prev_move_string]
-def decode_C4B(board_array, players, whose_turn, prev_move_string):
-    board = ConnectFourBoard(board_array, players, whose_turn)
-    board.prev_move_string = prev_move_string
-    return board
+def encode_NeuralNet(net):
+    return [net.inputs, net.neurons, map(encode_Wire, net.wires)]
+def decode_NeuralNet(inputs, neurons, wires_encoded):
+    return NeuralNet(inputs, neurons, map(decode_Wire, wires_encoded))
 
-def encode_ToyTree(tree):
-    if tree.children:
-        return [tree.label, tree.score, map(encode_ToyTree, tree.children)]
-    return [tree.label, tree.score, list()]
-def decode_ToyTree(args):
-    label, score, children_encoded = args
-    tree = ToyTree(label, score)
-    if children_encoded:
-        tree.children = map(decode_ToyTree, children_encoded)
-    return tree
+def encode_Point(point):
+    return [point.name, point.coords, point.classification, point.alpha]
+def decode_Point(args):
+    return Point(*args)
+
+def encode_DecisionBoundary(boundary):
+    return [boundary.w, boundary.b]
+def decode_DecisionBoundary(args):
+    return DecisionBoundary(*args)
+
+def encode_SVM(svm):
+    return [encode_DecisionBoundary(svm.boundary),
+            map(encode_Point, svm.training_points),
+            map(encode_Point, svm.support_vectors)]
+def decode_SVM(boundary_encoded, training_points_encoded,
+               support_vectors_encoded):
+    boundary = decode_DecisionBoundary(boundary_encoded)
+    training_points = map(decode_Point, training_points_encoded)
+    support_vectors = decode_support_vectors(support_vectors_encoded,
+                                             training_points)
+    return SupportVectorMachine(boundary, training_points, support_vectors)
+
+def decode_support_vectors(support_vectors_encoded, training_points):
+    sv_names = [sv_args[0] for sv_args in support_vectors_encoded]
+    support_vectors = [get_point_by_name(name, training_points)
+                       for name in sv_names]
+    return support_vectors
+
+def get_point_by_name(name, points):
+    for p in points:
+        if p.name == name:
+            return p
+    raise NameError("SVM has no point with name " + str(name))
 
 # decode functions received from server
-def l_valuate(board, player): return len(sum(board.get_all_chains(player),[]))
-def density(board, player) : return sum([abs(index-3)
-                                         for row in board.board_array
-                                         for (piece, index) in zip(row, range(board.num_cols))
-                                         if piece and (piece == 1) == (board.count_pieces() + player) % 2])
-def lambda_density_heur(board, maximize):
-    return ([-1,1][maximize] * (density(board, False) - density(board, True)
-            + 2*l_valuate(board,True) - 3*l_valuate(board, False)))
-def lambda_minus_heur(board, maximize):
-    return [-1,1][maximize] * (l_valuate(board,True) - l_valuate(board, False))
-
-def lambda_tree_negate(tree, is_max): return [-1,1][is_max] * tree.score
-
-def lambda_child_score(tree, is_max):
-    if not tree.children:
-        return tree.score
-    return tree.children[0].score
-
-function_dict = {'is_game_over_connectfour': is_game_over_connectfour,
-                 'next_boards_connectfour': next_boards_connectfour,
-                 'endgame_score_connectfour': endgame_score_connectfour,
-                 'toytree_is_game_over': toytree_is_game_over,
-                 'toytree_generate_next_states': toytree_generate_next_states,
-                 'toytree_endgame_score_fn': toytree_endgame_score_fn,
-                 'toytree_heuristic_fn': toytree_heuristic_fn,
-                 'lambda_density_heur': lambda_density_heur,
-                 'lambda_minus_heur': lambda_minus_heur,
-                 'lambda_tree_negate': lambda_tree_negate,
-                 'lambda_child_score': lambda_child_score,
-                 'always_zero': always_zero}
+function_dict = {'sigmoid': sigmoid, 'ReLU': ReLU}
 
 
 def type_decode(arg, lab):
@@ -158,12 +142,12 @@ def type_decode(arg, lab):
     original data type.
     """
     if isinstance(arg, list) and len(arg) >= 1: # There is no future magic for tuples.
-        if arg[0] == 'AGS' and isinstance(arg[1], list):
-            return decode_AGS(*[type_decode(x, lab) for x in arg[1]])
-        elif arg[0] == 'C4B' and isinstance(arg[1], list):
-            return decode_C4B(*arg[1])
-        elif arg[0] == 'ToyTree' and isinstance(arg[1], list):
-            return decode_ToyTree(arg[1]) # This is intentionally different.
+        if arg[0] == 'NeuralNet' and isinstance(arg[1], list):
+            return decode_NeuralNet(*arg[1])
+        elif arg[0] == 'SVM' and isinstance(arg[1], list):
+            return decode_SVM(*arg[1])
+        elif arg[0] == 'Point' and isinstance(arg[1], list):
+            return decode_Point(arg[1]) # This is intentionally different
         elif arg[0] == 'callable':
             try:
                 return function_dict[arg[1]]
@@ -181,24 +165,18 @@ def type_encode(arg):
     "Encode classes as lists in a way that can be decoded by 'type_decode'"
     if isinstance(arg, (list, tuple)):
         return [type_encode(a) for a in arg]
-    elif is_class_instance(arg, 'AbstractGameState'):
-        return ['AGS', map(type_encode, encode_AGS(arg))]
-    elif is_class_instance(arg, 'ConnectFourBoard'):
-        return ['C4B', encode_C4B(arg)]
-    elif is_class_instance(arg, 'ToyTree'):
-        return ['ToyTree', encode_ToyTree(arg)]
-    elif is_class_instance(arg, 'AnytimeValue'):
-        return ['AnytimeValue_history', type_encode(arg.history)]
-    elif callable(arg):
-        fn_name = arg.__name__
-        if fn_name == '<lambda>':
-            print (' ** Note: Unfortunately, the online tester is unable to '
-                   +'accept lambda functions. To pass the online tests, use '
-                   +'named functions instead. **')
-        elif fn_name not in function_dict:
-            print ('Error: constraint function', fn_name, 'cannot be transmitted '
-                   +'to server.  Please use a pre-defined constraint function instead.')
-        return ['callable', arg.__name__]
+    elif is_class_instance(arg, 'NeuralNet'):
+        return ['NeuralNet', encode_NeuralNet(arg)]
+    elif is_class_instance(arg, 'SupportVectorMachine'):
+        return ['SVM', encode_SVM(arg)]
+    elif is_class_instance(arg, 'Point'):
+        return ['Point', encode_Point(arg)]
+    elif isinstance(arg, dict):
+        # hack to prevent xmlrpclib TypeError "dictionary key must be string"
+        return {str(k):arg[k] for k in arg}
+    elif isinstance(arg, set):
+        # because xmlrpclib "cannot marshal <type 'set'> objects"
+        return type_encode(list(arg)) # There is no magic for sets, either.
     else:
         return arg
 
@@ -271,7 +249,12 @@ def test_offline(verbosity=1):
             show_exception(summary, testname)
             continue
 
-        correct = testanswer(answer)
+        # This prevents testanswer from throwing errors. eg, if return type is
+        # incorrect, testanswer returns False instead of raising an exception.
+        try:
+            correct = testanswer(answer)
+        except:
+            correct = False
         show_result(summary, testname, correct, answer, expected, verbosity)
         if correct: ncorrect += 1
 
@@ -342,7 +325,10 @@ def test_online(verbosity=1):
             print "Linux Athena computers are known to support HTTPS,"
             print "if you use the version of Python in the 'python' locker."
             sys.exit(0)
-
+    except xmlrpclib.Fault:
+        print "\nNote: Online tests for " + lab.__name__ + " are not currently available."
+        print "If you believe this is an error, please contact a TA.\n"
+        sys.exit(0)
     ntests = len(tests)
     ncorrect = 0
 
@@ -413,3 +399,4 @@ if __name__ == '__main__':
             test_online()
         else:
             print "Local tests passed! Run 'python %s submit' to submit your code and have it graded." % sys.argv[0]
+

@@ -11,7 +11,7 @@ INF = float('inf')
 ## is_game_over_connectfour
 
 #has chain len 4 -> True
-def is_game_over_connectfour_0_getargs() :
+def is_game_over_connectfour_0_getargs() :  #TEST 1
     return [PLAYER_ONE1_WON]
 def is_game_over_connectfour_0_testanswer(val, original_val = None) :
     return val == True
@@ -22,7 +22,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'is_game_over_connectfour')
 
 #all chains len < 4, board full -> True
-def is_game_over_connectfour_1_getargs() :
+def is_game_over_connectfour_1_getargs() :  #TEST 2
     return [BOARD_FULL_TIED]
 def is_game_over_connectfour_1_testanswer(val, original_val = None) :
     return val == True
@@ -33,7 +33,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'is_game_over_connectfour')
 
 #all chains len < 4, board not full -> False
-def is_game_over_connectfour_2_getargs() :
+def is_game_over_connectfour_2_getargs() :  #TEST 3
     return [NEARLY_OVER]
 def is_game_over_connectfour_2_testanswer(val, original_val = None) :
     return val == False
@@ -43,7 +43,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           expected_val = "False",
           name = 'is_game_over_connectfour')
 
-def is_game_over_connectfour_3_getargs() :
+def is_game_over_connectfour_3_getargs() :  #TEST 4
     return [BOARD_PARTIAL]
 def is_game_over_connectfour_3_testanswer(val, original_val = None) :
     return val == False
@@ -54,7 +54,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'is_game_over_connectfour')
 
 #empty board -> False
-def is_game_over_connectfour_4_getargs() :
+def is_game_over_connectfour_4_getargs() :  #TEST 5
     return [BOARD_EMPTY]
 def is_game_over_connectfour_4_testanswer(val, original_val = None) :
     return val == False
@@ -77,7 +77,7 @@ next_boards_BOARD_EMPTY = [BOARD_EMPTY_move0, BOARD_EMPTY_move1,
                            BOARD_EMPTY_move2, BOARD_EMPTY_move3,
                            BOARD_EMPTY_move4, BOARD_EMPTY_move5,
                            BOARD_EMPTY_move6]
-def next_boards_connectfour_0_getargs() :
+def next_boards_connectfour_0_getargs() :  #TEST 6
     return [BOARD_EMPTY]
 def next_boards_connectfour_0_testanswer(val, original_val = None) :
     return compare_list_of_boards_by_array(val, next_boards_BOARD_EMPTY)
@@ -93,7 +93,7 @@ next_boards_BOARD_PARTIAL = [BOARD_PARTIAL_move0, BOARD_PARTIAL_move1,
                              BOARD_PARTIAL_move2, BOARD_PARTIAL_move3,
                              BOARD_PARTIAL_move4, BOARD_PARTIAL_move5,
                              BOARD_PARTIAL_move6]
-def next_boards_connectfour_1_getargs() :
+def next_boards_connectfour_1_getargs() :  #TEST 7
     return [BOARD_PARTIAL]
 def next_boards_connectfour_1_testanswer(val, original_val = None) :
     return compare_list_of_boards_by_array(val, next_boards_BOARD_PARTIAL)
@@ -106,7 +106,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 #board with columns 1, 2, 3, 4, 6 full -> [0, 5]
 next_boards_NEARLY_OVER = [NEARLY_OVER_move0, NEARLY_OVER_move5]
-def next_boards_connectfour_2_getargs() :
+def next_boards_connectfour_2_getargs() :  #TEST 8
     return [NEARLY_OVER]
 def next_boards_connectfour_2_testanswer(val, original_val = None) :
     return compare_list_of_boards_by_array(val, next_boards_NEARLY_OVER)
@@ -118,7 +118,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'next_boards_connectfour')
 
 #board with all columns full -> []
-def next_boards_connectfour_3_getargs() :
+def next_boards_connectfour_3_getargs() :  #TEST 9
     return [BOARD_FULL_TIED]
 def next_boards_connectfour_3_testanswer(val, original_val = None) :
     return val == []
@@ -129,7 +129,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'next_boards_connectfour')
 
 #board with some space, with chain len 4 -> []
-def next_boards_connectfour_4_getargs() :
+def next_boards_connectfour_4_getargs() :  #TEST 10
     return [PLAYER_TWO2_WON]
 def next_boards_connectfour_4_testanswer(val, original_val = None) :
     return val == []
@@ -141,7 +141,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 #board with one space open in col 3 -> [3]
 #This tests that other ConnectFourBoard attributes are correct, in addition to board_array
-def next_boards_connectfour_5_getargs() :
+def next_boards_connectfour_5_getargs() :  #TEST 11
     return [BOARD_FULL_TIED_minus3]
 def next_boards_connectfour_5_testanswer(val, original_val = None) :
     return val == [BOARD_FULL_TIED_minus3.add_piece(3)]
@@ -155,7 +155,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 ## endgame_score_connectfour
 
 #MAX wins -> return 1000
-def endgame_score_connectfour_MAX_getargs() :
+def endgame_score_connectfour_MAX_getargs() :  #TEST 12
     return [PLAYER_2_ALICE_DOMINATED, False]
 def endgame_score_connectfour_MAX_testanswer(val, original_val = None) :
     return val == 1000
@@ -166,7 +166,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'endgame_score_connectfour')
 
 #MIN wins -> return -1000
-def endgame_score_connectfour_MIN_getargs() :
+def endgame_score_connectfour_MIN_getargs() :  #TEST 13
     return [PLAYER_ONE1_WON, True]
 def endgame_score_connectfour_MIN_testanswer(val, original_val = None) :
     return val == -1000
@@ -180,7 +180,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 ## endgame_score_connectfour_faster
 
 #compare wins with fewer pieces on board (higher abs score) vs more pieces (lower abs score)
-def endgame_score_connectfour_faster_MIN_getargs() :
+def endgame_score_connectfour_faster_MIN_getargs() :  #TEST 14
     return [[BOARD_ONEFISH_WON_FAST, True],  # stronger win for MIN (fewer total pieces on board)
             [BOARD_REDFISH_WON_LESS_FAST, True]]  # weaker win for MIN (more total pieces on board)
 def endgame_score_connectfour_faster_MIN_testanswer(val, original_val = None) :
@@ -193,7 +193,7 @@ make_test(type = 'MULTIFUNCTION',
                           +"than the second, and each <= 1000)"),
           name = 'endgame_score_connectfour_faster')
 
-def endgame_score_connectfour_faster_MAX_getargs() :
+def endgame_score_connectfour_faster_MAX_getargs() :  #TEST 15
     return [[PLAYER_TWO1_WON, False],  # stronger win for MAX (fewer total pieces on board)
             [PLAYER_2_ALICE_DOMINATED, False]]  # weaker win for MAX (more total pieces on board)
 def endgame_score_connectfour_faster_MAX_testanswer(val, original_val = None) :
@@ -210,7 +210,7 @@ make_test(type = 'MULTIFUNCTION',
 ## heuristic_connectfour
 
 # >0 if MAX's turn and MAX winning, val < 1000
-def heuristic_connectfour_0_getargs() :
+def heuristic_connectfour_0_getargs() :  #TEST 16
     return [BOARD_1_WINNING_BARELY, True]
 def heuristic_connectfour_0_testanswer(val, original_val = None) :
     return isinstance(val, (int, float)) and val > 0 and val < 1000
@@ -221,7 +221,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'heuristic_connectfour')
 
 # >0 if MIN's turn and MAX winning, val < 1000
-def heuristic_connectfour_1_getargs() :
+def heuristic_connectfour_1_getargs() :  #TEST 17
     return [BOARD_2_WINNING_DEFINITELY, False]
 def heuristic_connectfour_1_testanswer(val, original_val = None) :
     return isinstance(val, (int, float)) and val > 0 and val < 1000
@@ -232,7 +232,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'heuristic_connectfour')
 
 # <0 if MIN's turn and MIN winning, val > -1000
-def heuristic_connectfour_2_getargs() :
+def heuristic_connectfour_2_getargs() :  #TEST 18
     return [BOARD_1_WINNING_BARELY, False]
 def heuristic_connectfour_2_testanswer(val, original_val = None) :
     return isinstance(val, (int, float)) and val < 0 and val > -1000
@@ -243,7 +243,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'heuristic_connectfour')
 
 # <0 if MAX's turn and MIN winning, val > -1000
-def heuristic_connectfour_3_getargs() :
+def heuristic_connectfour_3_getargs() :  #TEST 19
     return [BOARD_2_WINNING_LESS_PIECES, True]
 def heuristic_connectfour_3_testanswer(val, original_val = None) :
     return isinstance(val, (int, float)) and val < 0 and val > -1000
@@ -254,7 +254,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'heuristic_connectfour')
 
 # larger score if MAX is winning by more
-def heuristic_connectfour_4_getargs() :
+def heuristic_connectfour_4_getargs() :  #TEST 20
     return [[BOARD_2_WINNING_DEFINITELY, True],  # MIN winning by a lot
             [BOARD_1_WINNING_BARELY, False],     # MIN winning, barely
             [BOARD_1_WINNING_BARELY, True],      # MAX winning, barely
@@ -275,7 +275,7 @@ make_test(type = 'MULTIFUNCTION',
 
 ## dfs_maximizing
 
-def dfs_0_getargs() :
+def dfs_0_getargs() :  #TEST 21
     return [GAME1]
 def dfs_0_testanswer(val, original_val = None) :
     return  (is_dfs_return_type(val) and move_sequence(GAME1, [2,3]) == val[0]
@@ -289,7 +289,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 # MINIMAX ENDGAME SEARCH
-def minimax_0_getargs() :
+def minimax_0_getargs() :  #TEST 22
     return [GAME1, True]
 
 def minimax_0_testanswer(val, original_val = None) :
@@ -302,7 +302,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           expected_val = "List of [best_path, leaf_score, and evaluation_count] corresponding to minimax score when the first player is the maximizer.",
           name = 'minimax_endgame_search')
 
-def minimax_1_getargs() :
+def minimax_1_getargs() :  #TEST 23
     return [GAME1, False]
 
 def minimax_1_testanswer(val, original_val = None) :
@@ -318,7 +318,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 # LIMITED DEPTH SEARCH
-def minimax_2_getargs() :
+def minimax_2_getargs() :  #TEST 24
     return [GAME_STATIC_ALL_LEVELS, always_zero, 2, True]
 
 def minimax_2_testanswer(val, original_val = None) :
@@ -334,7 +334,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 # DEPTH-LIMITED SEARCH
-def minimax_3_getargs() :
+def minimax_3_getargs() :  #TEST 25
     GAME = AbstractGameState(BOARD_UHOH, is_game_over_connectfour, next_boards_connectfour, endgame_score_connectfour)
     valuate = lambda board, player : len(sum(board.get_all_chains(player),[]))
     return [GAME, lambda board,maximize: [-1,1][maximize] * (valuate(board,True) - valuate(board, False)), 2, True]
@@ -357,7 +357,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 
-def minimax_4_getargs() :
+def minimax_4_getargs() :  #TEST 26
 
     GAME = AbstractGameState(BOARD_EMPTY.add_piece(3).add_piece(3), is_game_over_connectfour, next_boards_connectfour, endgame_score_connectfour)
     valuate = lambda board, player : len(sum(board.get_all_chains(player),[]))
@@ -388,7 +388,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 ## minimax_search_alphabeta
 
 #  A two-move game.
-def alphabeta_0_getargs() :
+def alphabeta_0_getargs() :  #TEST 27
     return [GAME1, -INF, INF, lambda x,y:0, INF, True]
 
 def alphabeta_0_testanswer(val, original_val = None) :
@@ -402,7 +402,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
           name = 'minimax_search_alphabeta')
 
 
-def alphabeta_1_getargs() :
+def alphabeta_1_getargs() :  #TEST 28
     return [GAME1, -INF, INF, lambda x,y:0, INF, False]
 
 def alphabeta_1_testanswer(val, original_val = None) :
@@ -419,7 +419,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 
-def alphabeta_2_getargs() :
+def alphabeta_2_getargs() :  #TEST 29
     return [GAME_EQUALITY_PRUNING, -INF, INF, lambda x,y:0, INF, True]
 
 def alphabeta_2_testanswer(val, original_val = None) :
@@ -437,7 +437,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 # A test for when the correct move is not just the first available move
-def alphabeta_3_getargs() :
+def alphabeta_3_getargs() :  #TEST 30
     return [GAME_EQUALITY_PRUNING, -INF, INF, lambda x,y:0, INF, False]
 
 def alphabeta_3_testanswer(val, original_val = None) :
@@ -458,7 +458,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 ## progressive_deepening
 
 
-def progressive_0_getargs() :
+def progressive_0_getargs() :  #TEST 31
     return [GAME_STATIC_ALL_LEVELS, toytree_heuristic_fn, 3, True]
 
 def progressive_0_testanswer(val, original_val = None) :
@@ -476,7 +476,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 
 
-def progressive_1_getargs() :
+def progressive_1_getargs() :  #TEST 32
 
     GAME = AbstractGameState(BOARD_EMPTY.add_piece(3).add_piece(3), is_game_over_connectfour, next_boards_connectfour, endgame_score_connectfour)
     valuate = lambda board, player : len(sum(board.get_all_chains(player),[]))
@@ -504,7 +504,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 
 #### SURVEY ###################################################
 
-def NAME_testanswer(val, original_val = None):
+def NAME_testanswer(val, original_val = None):  #TEST 33
     return ( isinstance(val, str) and val != '')
 
 make_test(type = 'VALUE',
@@ -515,7 +515,7 @@ make_test(type = 'VALUE',
           )
 
 
-def COLLABORATORS_testanswer(val, original_val = None):
+def COLLABORATORS_testanswer(val, original_val = None):  #TEST 34
     return isinstance(val, str)
 
 make_test(type = 'VALUE',
@@ -526,7 +526,7 @@ make_test(type = 'VALUE',
           )
 
 
-def HOW_MANY_HOURS_testanswer(val, original_val = None):
+def HOW_MANY_HOURS_testanswer(val, original_val = None):  #TEST 35
     return isinstance(val, (int, float, str)) and val != ''
 
 make_test(type = 'VALUE',
@@ -537,7 +537,7 @@ make_test(type = 'VALUE',
           )
 
 
-def WHAT_I_FOUND_INTERESTING_testanswer(val, original_val = None):
+def WHAT_I_FOUND_INTERESTING_testanswer(val, original_val = None):  #TEST 36
     return isinstance(val, str)
 
 make_test(type = 'VALUE',
@@ -548,7 +548,7 @@ make_test(type = 'VALUE',
           )
 
 
-def WHAT_I_FOUND_BORING_testanswer(val, original_val = None):
+def WHAT_I_FOUND_BORING_testanswer(val, original_val = None):  #TEST 37
     return isinstance(val, str)
 
 make_test(type = 'VALUE',
@@ -557,3 +557,90 @@ make_test(type = 'VALUE',
           expected_val = '(a boring thing)',
           name = 'WHAT_I_FOUND_BORING'
           )
+
+
+#### Bonus tests for minimax_search_alphabeta ##############################
+
+PRUNING_TREE = ToyTree()
+PRUNING_TREE.sub('A',10).sub()
+PRUNING_TREE.down().right().sub('B',20).sub()
+PRUNING_TREE.down().right().down().right().sub('C',1).sub()
+PRUNING_TREE.down().right().down().right().down().right().sub('D',4).sub('X',2)
+
+PRUNING_GAME = AbstractGameState(PRUNING_TREE,
+                          toytree_is_game_over,
+                          toytree_generate_next_states,
+                          toytree_endgame_score_fn)
+
+def alphabeta_4_getargs() :  #TEST 38
+    return [PRUNING_GAME, -INF, INF, toytree_heuristic_fn, INF, True]
+
+def alphabeta_4_testanswer(val, original_val = None) :
+    return (is_dfs_return_type(val)
+            and move_sequence(PRUNING_GAME, [0]) == val[0]
+            and (val[1],val[2]) == (10,4))
+
+make_test(type = 'FUNCTION_ENCODED_ARGS',
+          getargs = alphabeta_4_getargs,
+          testanswer = alphabeta_4_testanswer,
+          expected_val = ("((list of two AbstractGameState instances), 10, 4) "
+                          +"(Hint: If you get 5 evaluations instead of 4, check "
+                          +"your pruning condition, and check how your alpha "
+                          +"and beta values get passed up and down the tree.)"),
+          name = 'minimax_search_alphabeta')
+
+
+PRUNING_TREE_NEG = ToyTree()
+PRUNING_TREE_NEG.sub('A',-10).sub()
+PRUNING_TREE_NEG.down().right().sub('B',-20).sub()
+PRUNING_TREE_NEG.down().right().down().right().sub('C',-1).sub()
+PRUNING_TREE_NEG.down().right().down().right().down().right().sub('D',-4).sub('X',-2)
+
+PRUNING_GAME_NEG = AbstractGameState(PRUNING_TREE_NEG,
+                          toytree_is_game_over,
+                          toytree_generate_next_states,
+                          toytree_endgame_score_fn)
+
+def alphabeta_5_getargs() :  #TEST 39
+    return [PRUNING_GAME_NEG, -INF, INF, toytree_heuristic_fn, INF, False]
+
+def alphabeta_5_testanswer(val, original_val = None) :
+    return (is_dfs_return_type(val)
+            and move_sequence(PRUNING_GAME_NEG, [0]) == val[0]
+            and (val[1],val[2]) == (-10,4))
+
+make_test(type = 'FUNCTION_ENCODED_ARGS',
+          getargs = alphabeta_5_getargs,
+          testanswer = alphabeta_5_testanswer,
+          expected_val = ("((list of two AbstractGameState instances), -10, 4) "
+                          +"(Hint: If you get 5 evaluations instead of 4, check "
+                          +"your pruning condition, and check how your alpha "
+                          +"and beta values get passed up and down the tree.)"),
+          name = 'minimax_search_alphabeta')
+
+
+NEGATE_TREE = ToyTree()
+NEGATE_TREE.sub('P',4).sub('Q',5)
+
+NEGATE_GAME_endgame_score_fn = lambda tree, is_max: [-1,1][is_max] * tree.score
+NEGATE_GAME = AbstractGameState(NEGATE_TREE,
+                          toytree_is_game_over,
+                          toytree_generate_next_states,
+                          NEGATE_GAME_endgame_score_fn)
+
+def alphabeta_6_getargs() :  #TEST 40
+    return [NEGATE_GAME, -INF, INF, toytree_heuristic_fn, INF, True]
+
+def alphabeta_6_testanswer(val, original_val = None) :
+    return (is_dfs_return_type(val)
+            and move_sequence(NEGATE_GAME, [0]) == val[0]
+            and (val[1],val[2]) == (-4,2))
+
+make_test(type = 'FUNCTION_ENCODED_ARGS',
+          getargs = alphabeta_6_getargs,
+          testanswer = alphabeta_6_testanswer,
+          expected_val = ("((list of two AbstractGameState instances), -4, 2) "
+                          +"(Hint: If you get a score of 5 instead of -4, check "
+                          +"that you're calling state.get_endgame_score with "
+                          +"the 'maximize' argument.)"),
+          name = 'minimax_search_alphabeta')
