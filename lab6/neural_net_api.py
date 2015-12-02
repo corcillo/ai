@@ -93,11 +93,11 @@ class NeuralNet:
         return any([endNode == w.endNode
                     for w in self.get_wires(startNode)])
 
-    def is_input_neuron(self, neuron):
-        "Returns True if neuron is an input-layer neuron, otherwise False."
-        return (neuron in self.neurons
-                and any(map(lambda w: w.startNode in self.inputs,
-                            self.get_wires(None, neuron))))
+    def has_incoming_neuron(self, node):
+        """Returns True if node has at least one incoming neuron, otherwise
+        False."""
+        return any(map(lambda n: n in self.neurons,
+                       self.get_incoming_neighbors(node)))
 
     def is_output_neuron(self, neuron):
         "Returns True if neuron is the output-layer neuron, otherwise False."
@@ -154,8 +154,8 @@ class NeuralNet:
             assert sorted(self.inputs) == sorted(other.inputs)
             assert sorted(self.neurons) == sorted(other.neurons)
             assert len(self.wires) == len(other.wires)
-            assert [w1.__eq__(w2, epsilon) for w1, w2
-                    in zip(sort_wires(self.wires), sort_wires(other.wires))]
+            assert all([w1.__eq__(w2, epsilon) for w1, w2
+                        in zip(*map(sort_wires, [self.wires, other.wires]))])
             return True
         except:
             return False

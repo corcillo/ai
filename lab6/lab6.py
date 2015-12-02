@@ -1,4 +1,4 @@
-[# 6.034 Lab 6 2015: Neural Nets & SVMs
+# 6.034 Lab 6 2015: Neural Nets & SVMs
 
 from nn_problems import *
 from svm_problems import *
@@ -88,12 +88,12 @@ def update_weights(net, input_values, desired_output, r=1):
     dBDict = calculate_deltas(net,input_values,desired_output)
     finalOutput,outputValues = forward_prop(net, input_values, sigmoid)
     for wire in net.get_wires():
-        if net.is_input_neuron(wire.endNode):
-            inputVal = 0
-            if isinstance(wire.startNode,int):
-                inputVal = wire.startNode
-            elif input_values.get(str(wire.startNode))!=None:
-                inputVal = input_values[str(wire.startNode)]
+        inputVal = 0
+        if isinstance(wire.startNode,int):
+            inputVal = wire.startNode
+            wire.weight+=r*inputVal*dBDict[wire.endNode]
+        elif input_values.get(str(wire.startNode))!=None:
+            inputVal = input_values[str(wire.startNode)]
             wire.weight+=r*inputVal*dBDict[wire.endNode]
         elif not net.is_output_neuron(wire.startNode):
             wire.weight+=r*outputValues[wire.startNode]*dBDict[wire.endNode]
@@ -120,29 +120,28 @@ def back_prop(net, input_values, desired_output, r=1, accuracy_threshold=-.001):
 def dot_product(u, v):
     """Computes dot product of two vectors u and v, each represented as a tuple
     or list of coordinates.  Assume the two vectors are the same length."""
-#    sum = 0
-#    for i in xrange(len(u)):
-#        sum+=u[i]*v[i]
-#    return sum
-    return np.dot(u,v)
+    sum = 0
+    for i in xrange(len(u)):
+        sum+=u[i]*v[i]
+    return sum
 
 def norm(v):
-#    sum = 0
-#    for i in xrange(len(v)):
-#        sum += v[i]**2
-#    return math.sqrt(sum)
-    return np.linalg.norm(v)
+    sum = 0
+    for i in xrange(len(v)):
+        sum += v[i]**2
+    return math.sqrt(sum)
+#return float(np.linalg.norm(v))
 
 # Equation 1
 def positiveness(svm, point):
     "Computes the expression (w dot x + b) for the given point"
     prod = dot_product(svm.boundary.w,point.coords)
-    return np.add(prod,svm.boundary.b)
+    return prod+svm.boundary.b
+#    return np.add(prod,svm.boundary.b)
 
 def classify(svm, point):
     """Uses given SVM to classify a Point.  Assumes that point's classification
     is unknown.  Returns +1 or -1, or 0 if point is on boundary"""
-    #print "SVM: ",svm
     res = positiveness(svm,point)
     if res==0:
         return 0
@@ -184,8 +183,6 @@ def check_alpha_signs(svm):
         * all support vectors have alpha > 0
     Assumes that the SVM has support vectors assigned, and that all training
     points have alpha values assigned."""
-##    print "SVM : ",svm
-##    print "SVM SV: ",svm.support_vectors
     violators = set([])
     svs = svm.support_vectors
     for v in svm.training_points:
@@ -202,12 +199,13 @@ def check_alpha_equations(svm):
     otherwise False.  Assumes that the SVM has support vectors assigned, and
     that all training points have alpha values assigned."""
     eq4Sum = 0
-    eq5Sum = 0
+    eq5Sum = [0 for i in xrange(len(svm.training_points[0].coords))]
     for point in svm.training_points:
         ya = point.classification*point.alpha
-        yax = dot_product(ya,point.coords)
+        #print "ya: ",ya, " point coords: ",point.coords
+        yax = scalar_mult(ya,point.coords)
         eq4Sum+=ya
-        eq5Sum+=yax
+        eq5Sum= vector_add(eq5Sum,yax)
     return eq4Sum==0 and np.array_equal(eq5Sum,svm.boundary.w)
 
 # Classification accuracy

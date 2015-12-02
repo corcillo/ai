@@ -16,8 +16,8 @@ def dict_contains(d, pairs):
 
 def dict_approx_equal(dict1, dict2, epsilon=0.00000001):
     """Returns True if two dicts have the same keys and approximately equal
-    values, otherwise False"""
-    return (dict1.keys() == dict2.keys()
+        values, otherwise False"""
+    return (set(dict1.keys()) == set(dict2.keys())
             and all([approx_equal(dict1[key], dict2[key], epsilon)
                      for key in dict1.keys()]))
 
@@ -274,8 +274,8 @@ def calculate_deltas_2_getargs() :  #TEST 20
     return [get_nn_River(1, -2, 5, 3, -2, 1).shuffle_lists(),
             nn_River_inputs.copy(), nn_River_desired]
 calculate_deltas_2_expected_deltas = {'A': 0.04441976755198489,
-                                      'B': -0.01186039570737828,
-                                      'C': -0.1129630506644473}
+    'B': -0.01186039570737828,
+        'C': -0.1129630506644473}
 def calculate_deltas_2_testanswer(val, original_val = None) :
     return dict_approx_equal(val, calculate_deltas_2_expected_deltas)
 make_test(type = 'FUNCTION_ENCODED_ARGS',
@@ -343,8 +343,8 @@ def update_weights_2_getargs() :  #TEST 24
     return [get_nn_River(1, -2, 5, 3, -2, 1).shuffle_lists(),
             nn_River_inputs.copy(), nn_River_desired]
 update_weights_2_expected_net = get_nn_River(1.0444197675519848, \
-    -2.0118603957073784, 5, 2.8870369493355525, -2.08258260725646, \
-    0.9865344742802654)
+                                             -2.0118603957073784, 5, 2.8870369493355525, -2.08258260725646, \
+                                             0.9865344742802654)
 def update_weights_2_testanswer(val, original_val = None) :
     return val == update_weights_2_expected_net
 make_test(type = 'FUNCTION_ENCODED_ARGS',
@@ -371,7 +371,7 @@ make_test(type = 'FUNCTION_ENCODED_ARGS',
 def update_weights_3_getargs() :  #TEST 25
     return [nn_branching.shuffle_lists(), {'in': 17}, 1]
 def update_weights_3_testanswer(val, original_val = None) :
-    return val == nn_branching_update_iter1
+    return val.__eq__(nn_branching_update_iter1, 0.00000001)
 make_test(type = 'FUNCTION_ENCODED_ARGS',
           getargs = update_weights_3_getargs,
           testanswer = update_weights_3_testanswer,
